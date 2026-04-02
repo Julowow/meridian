@@ -11,6 +11,13 @@ export interface Article {
   isBreaking: boolean;
   isHot: boolean;
   imageUrl?: string;
+  // Phase 2: dedup cluster
+  duplicateCount?: number;
+  relatedSources?: string[];
+  // Phase 2: AI summary placeholder
+  aiSummary?: string | null;
+  aiEntities?: string[];
+  aiSentiment?: "positive" | "neutral" | "negative" | "alarming" | null;
 }
 
 export type Category =

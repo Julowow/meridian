@@ -36,6 +36,10 @@ export default function Sidebar({ articles, sources }: SidebarProps) {
   }
   const maxCount = Math.max(...breakdown.values(), 1);
 
+  // Phase 2 stats
+  const dedupedCount = articles.filter((a) => (a.duplicateCount ?? 1) > 1).length;
+  const aiCount = articles.filter((a) => a.aiSummary).length;
+
   return (
     <aside className="w-full h-full overflow-y-auto bg-zinc-950 border-l border-zinc-800">
       {/* LATEST section */}
@@ -128,11 +132,23 @@ export default function Sidebar({ articles, sources }: SidebarProps) {
             </div>
           ))}
         </div>
-        <div className="mt-3 pt-2 border-t border-zinc-800/50">
+        <div className="mt-3 pt-2 border-t border-zinc-800/50 space-y-1">
           <div className="flex items-center justify-between text-[10px] text-zinc-600 font-mono">
             <span>TOTAL ARTICLES</span>
             <span className="text-zinc-400 font-bold">
               {articles.length}
+            </span>
+          </div>
+          <div className="flex items-center justify-between text-[10px] text-zinc-600 font-mono">
+            <span>MULTI-SOURCE</span>
+            <span className="text-amber-400 font-bold">
+              {dedupedCount}
+            </span>
+          </div>
+          <div className="flex items-center justify-between text-[10px] text-zinc-600 font-mono">
+            <span>RÉSUMÉS IA</span>
+            <span className="text-violet-400 font-bold">
+              {aiCount}/{articles.length}
             </span>
           </div>
         </div>

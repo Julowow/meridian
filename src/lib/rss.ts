@@ -1,6 +1,9 @@
 import Parser from "rss-parser";
 import { Article, Category, SourceConfig, SourceStatus } from "@/types";
 import { RSS_SOURCES } from "@/config/sources";
+import { deduplicateArticles } from "@/lib/dedup";
+import { getCachedFeed, setCachedFeed } from "@/lib/cache";
+import { enrichArticlesWithAI } from "@/lib/ai-summary";
 
 const parser = new Parser({
   timeout: 10_000,
@@ -8,12 +11,6 @@ const parser = new Parser({
     "User-Agent": "Meridian/1.0 News Aggregator",
   },
 });
-
-// Simple in-memory cache
-let cachedArticles: Article[] = [];
-let cachedSources: SourceStatus[] = [];
-let lastFetchTime = 0;
-const CACHE_TTL = 60_000; // 60 seconds
 
 function generateId(source: string, title: string): string {
   const str = `${source}:${title}`;
@@ -33,85 +30,24 @@ function classifyCategory(
   const text = `${item.title ?? ""} ${item.contentSnippet ?? ""}`.toLowerCase();
 
   const warKeywords = [
-    "war",
-    "conflict",
-    "missile",
-    "bomb",
-    "military",
-    "troops",
-    "invasion",
-    "attack",
-    "drone",
-    "airstrike",
-    "ceasefire",
-    "ukraine",
-    "gaza",
-    "hamas",
-    "nato",
-    "army",
-    "soldier",
-    "weapon",
-    "guerre",
-    "combat",
+    "war", "conflict", "missile", "bomb", "military", "troops", "invasion",
+    "attack", "drone", "airstrike", "ceasefire", "ukraine", "gaza", "hamas",
+    "nato", "army", "soldier", "weapon", "guerre", "combat",
   ];
   const politicsKeywords = [
-    "election",
-    "president",
-    "parliament",
-    "minister",
-    "senate",
-    "congress",
-    "vote",
-    "policy",
-    "democrat",
-    "republican",
-    "legislation",
-    "trump",
-    "biden",
-    "macron",
-    "politics",
-    "political",
-    "gouvernement",
-    "parti",
+    "election", "president", "parliament", "minister", "senate", "congress",
+    "vote", "policy", "democrat", "republican", "legislation", "trump",
+    "biden", "macron", "politics", "political", "gouvernement", "parti",
   ];
   const marketKeywords = [
-    "stock",
-    "market",
-    "dow",
-    "nasdaq",
-    "s&p",
-    "crypto",
-    "bitcoin",
-    "trading",
-    "investor",
-    "wall street",
-    "bull",
-    "bear",
-    "rally",
-    "etf",
-    "bond",
-    "yield",
-    "forex",
-    "bourse",
+    "stock", "market", "dow", "nasdaq", "s&p", "crypto", "bitcoin",
+    "trading", "investor", "wall street", "bull", "bear", "rally", "etf",
+    "bond", "yield", "forex", "bourse",
   ];
   const economyKeywords = [
-    "economy",
-    "gdp",
-    "inflation",
-    "interest rate",
-    "fed",
-    "central bank",
-    "recession",
-    "unemployment",
-    "fiscal",
-    "trade",
-    "tariff",
-    "debt",
-    "deficit",
-    "imf",
-    "world bank",
-    "economic",
-    "économie",
+    "economy", "gdp", "inflation", "interest rate", "fed", "central bank",
+    "recession", "unemployment", "fiscal", "trade", "tariff", "debt",
+    "deficit", "imf", "world bank", "economic", "économie",
   ];
 
   if (warKeywords.some((kw) => text.includes(kw))) return "war-geo";
@@ -123,7 +59,7 @@ function classifyCategory(
 
 function isBreaking(pubDate: string): boolean {
   const diff = Date.now() - new Date(pubDate).getTime();
-  return diff < 15 * 60 * 1000; // < 15 minutes
+  return diff < 15 * 60 * 1000;
 }
 
 async function fetchSource(
@@ -156,6 +92,11 @@ async function fetchSource(
         isBreaking: isBreaking(pubDate),
         isHot: false,
         imageUrl: item.enclosure?.url ?? undefined,
+        duplicateCount: 1,
+        relatedSources: [sourceConfig.name],
+        aiSummary: null,
+        aiEntities: [],
+        aiSentiment: null,
       };
     });
 
@@ -170,54 +111,12 @@ async function fetchSource(
   }
 }
 
-function deduplicateArticles(articles: Article[]): Article[] {
-  const seen = new Map<string, Article>();
-
-  for (const article of articles) {
-    // Normalize title for dedup
-    const normalizedTitle = article.title
-      .toLowerCase()
-      .replace(/[^a-z0-9\s]/g, "")
-      .replace(/\s+/g, " ")
-      .trim();
-
-    // Use first 60 chars of normalized title as dedup key
-    const key = normalizedTitle.substring(0, 60);
-
-    if (!seen.has(key)) {
-      seen.set(key, article);
-    }
-  }
-
-  return Array.from(seen.values());
-}
-
 function markHotArticles(articles: Article[]): Article[] {
-  // Articles that appear similar across multiple sources = HOT
-  const titleWords = new Map<string, number>();
-
-  for (const article of articles) {
-    const words = article.title
-      .toLowerCase()
-      .split(/\s+/)
-      .filter((w) => w.length > 4);
-    const uniqueWords = [...new Set(words)];
-    for (const word of uniqueWords) {
-      titleWords.set(word, (titleWords.get(word) ?? 0) + 1);
-    }
-  }
-
-  return articles.map((article) => {
-    const words = article.title
-      .toLowerCase()
-      .split(/\s+/)
-      .filter((w) => w.length > 4);
-    const hotScore = words.reduce(
-      (sum, w) => sum + (titleWords.get(w) ?? 0),
-      0
-    );
-    return { ...article, isHot: hotScore > 8 };
-  });
+  return articles.map((article) => ({
+    ...article,
+    // HOT = covered by multiple sources (from dedup cluster)
+    isHot: (article.duplicateCount ?? 1) > 1 || (article.relatedSources?.length ?? 1) > 1,
+  }));
 }
 
 export async function fetchAllFeeds(): Promise<{
@@ -225,18 +124,14 @@ export async function fetchAllFeeds(): Promise<{
   sources: SourceStatus[];
   fetchedAt: string;
 }> {
-  // Return cache if still fresh
-  if (Date.now() - lastFetchTime < CACHE_TTL && cachedArticles.length > 0) {
-    // Update breaking status on cached articles
-    const updated = cachedArticles.map((a) => ({
+  // Check cache first
+  const cached = getCachedFeed();
+  if (cached) {
+    const updated = cached.articles.map((a) => ({
       ...a,
       isBreaking: isBreaking(a.pubDate),
     }));
-    return {
-      articles: updated,
-      sources: cachedSources,
-      fetchedAt: new Date(lastFetchTime).toISOString(),
-    };
+    return { ...cached, articles: updated };
   }
 
   const results = await Promise.allSettled(
@@ -258,20 +153,23 @@ export async function fetchAllFeeds(): Promise<{
     (a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime()
   );
 
-  // Deduplicate
+  // Advanced deduplication with similarity scoring
   allArticles = deduplicateArticles(allArticles);
 
-  // Mark hot articles
+  // Mark hot articles based on cluster size
   allArticles = markHotArticles(allArticles);
 
-  // Update cache
-  cachedArticles = allArticles;
-  cachedSources = allSources;
-  lastFetchTime = Date.now();
+  // Enrich with AI summaries (placeholder — returns articles unchanged for now)
+  allArticles = await enrichArticlesWithAI(allArticles);
 
-  return {
+  const feedData = {
     articles: allArticles,
     sources: allSources,
     fetchedAt: new Date().toISOString(),
   };
+
+  // Store in cache
+  setCachedFeed(feedData);
+
+  return feedData;
 }
