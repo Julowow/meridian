@@ -9,6 +9,9 @@ import TickerTape from "./TickerTape";
 import FilterBar from "./FilterBar";
 import ArticleCard from "./ArticleCard";
 import Sidebar from "./Sidebar";
+import SearchBar from "./SearchBar";
+import AlertsPanel from "./AlertsPanel";
+import HeatMap from "./HeatMap";
 import { Loader2 } from "lucide-react";
 
 const TIME_FILTER_MS: Record<TimeFilter, number> = {
@@ -73,6 +76,13 @@ export default function Dashboard() {
         timeFilter={timeFilter}
         onTimeFilterChange={setTimeFilter}
       />
+
+      {/* Tools bar */}
+      <div className="bg-zinc-950 border-b border-zinc-800 px-4 py-1.5 flex items-center gap-3 shrink-0">
+        <SearchBar />
+        <AlertsPanel />
+        <HeatMap articles={articles} />
+      </div>
 
       {/* Main content area */}
       <div className="flex flex-1 overflow-hidden">

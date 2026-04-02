@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { fetchAllFeeds } from "@/lib/rss";
 import { MOCK_ARTICLES, MOCK_SOURCES } from "@/lib/mock-data";
+import { indexArticles } from "@/lib/search";
+import { processAlerts } from "@/lib/alerts";
 
 export const dynamic = "force-dynamic";
 
@@ -9,18 +11,22 @@ export async function GET() {
     const data = await fetchAllFeeds();
 
     // If no articles from real feeds, use mock data for demo
-    if (data.articles.length === 0) {
-      return NextResponse.json({
-        articles: MOCK_ARTICLES,
-        sources: MOCK_SOURCES,
-        fetchedAt: new Date().toISOString(),
-      });
-    }
+    const articles = data.articles.length > 0 ? data.articles : MOCK_ARTICLES;
+    const sources = data.articles.length > 0 ? data.sources : MOCK_SOURCES;
 
-    return NextResponse.json(data);
+    // Index for fulltext search
+    indexArticles(articles);
+
+    // Process keyword alerts (sends Telegram if configured)
+    processAlerts(articles).catch(console.error);
+
+    return NextResponse.json({
+      articles,
+      sources,
+      fetchedAt: data.fetchedAt,
+    });
   } catch (error) {
     console.error("Feed API error:", error);
-    // Fallback to mock data on error
     return NextResponse.json({
       articles: MOCK_ARTICLES,
       sources: MOCK_SOURCES,
