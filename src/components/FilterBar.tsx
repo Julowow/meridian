@@ -1,0 +1,83 @@
+"use client";
+
+import { Category, SourceId, TimeFilter } from "@/types";
+import { CATEGORIES, RSS_SOURCES } from "@/config/sources";
+
+interface FilterBarProps {
+  activeCategory: Category;
+  onCategoryChange: (cat: Category) => void;
+  activeSources: Set<SourceId>;
+  onToggleSource: (id: SourceId) => void;
+  timeFilter: TimeFilter;
+  onTimeFilterChange: (tf: TimeFilter) => void;
+}
+
+export default function FilterBar({
+  activeCategory,
+  onCategoryChange,
+  activeSources,
+  onToggleSource,
+  timeFilter,
+  onTimeFilterChange,
+}: FilterBarProps) {
+  return (
+    <div className="bg-zinc-950 border-b border-zinc-800 px-4 py-2 flex items-center gap-6 shrink-0 overflow-x-auto">
+      {/* Category tabs */}
+      <div className="flex items-center gap-1">
+        {CATEGORIES.map((cat) => (
+          <button
+            key={cat.id}
+            onClick={() => onCategoryChange(cat.id as Category)}
+            className={`px-3 py-1 text-xs font-bold tracking-wider rounded transition-colors ${
+              activeCategory === cat.id
+                ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800"
+            }`}
+          >
+            {cat.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Separator */}
+      <div className="w-px h-5 bg-zinc-800" />
+
+      {/* Source toggles */}
+      <div className="flex items-center gap-1.5">
+        {RSS_SOURCES.map((source) => (
+          <button
+            key={source.id}
+            onClick={() => onToggleSource(source.id)}
+            className={`px-2 py-0.5 text-[10px] font-mono rounded transition-all ${
+              activeSources.has(source.id)
+                ? "bg-zinc-700 text-zinc-200 border border-zinc-600"
+                : "text-zinc-600 border border-zinc-800 hover:border-zinc-700"
+            }`}
+          >
+            {source.name}
+          </button>
+        ))}
+      </div>
+
+      {/* Separator */}
+      <div className="w-px h-5 bg-zinc-800" />
+
+      {/* Time filter */}
+      <div className="flex items-center gap-1">
+        {(["1h", "6h", "24h"] as TimeFilter[]).map((tf) => (
+          <button
+            key={tf}
+            onClick={() => onTimeFilterChange(tf)}
+            className={`px-2 py-0.5 text-xs font-mono rounded transition-colors ${
+              timeFilter === tf
+                ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
+                : "text-zinc-500 hover:text-zinc-300"
+            }`}
+          >
+            {tf}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
