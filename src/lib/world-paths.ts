@@ -2,14 +2,24 @@ import * as topojson from "topojson-client";
 import landTopo from "world-atlas/land-110m.json";
 import type { Topology, GeometryCollection } from "topojson-specification";
 
-const WIDTH = 800;
-const HEIGHT = 420;
+// Projection bounds: crop to useful latitudes (skip poles)
+const LAT_MIN = -56;
+const LAT_MAX = 83;
+export const MAP_WIDTH = 800;
+export const MAP_HEIGHT = 380;
 
-function projectMercator(lng: number, lat: number): [number, number] {
-  const x = ((lng + 180) / 360) * WIDTH;
-  const latRad = (Math.max(-80, Math.min(84, lat)) * Math.PI) / 180;
+// Pre-compute the Mercator Y range for our lat bounds
+const mercYMax = Math.log(Math.tan(Math.PI / 4 + (LAT_MAX * Math.PI) / 360));
+const mercYMin = Math.log(Math.tan(Math.PI / 4 + (LAT_MIN * Math.PI) / 360));
+const mercRange = mercYMax - mercYMin;
+
+export function projectMercator(lng: number, lat: number): [number, number] {
+  const x = ((lng + 180) / 360) * MAP_WIDTH;
+  const clampedLat = Math.max(LAT_MIN, Math.min(LAT_MAX, lat));
+  const latRad = (clampedLat * Math.PI) / 180;
   const mercN = Math.log(Math.tan(Math.PI / 4 + latRad / 2));
-  const y = HEIGHT / 2 - (mercN / Math.PI) * (HEIGHT / 2);
+  // Map mercN from [mercYMin, mercYMax] to [MAP_HEIGHT, 0]
+  const y = MAP_HEIGHT - ((mercN - mercYMin) / mercRange) * MAP_HEIGHT;
   return [x, y];
 }
 
@@ -81,6 +91,10 @@ function generateWorldPaths(): string[] {
 
   function processRing(ring: number[][]) {
     if (ring.length < 4) return;
+
+    // Skip Antarctica and other polar-only polygons
+    const maxLat = Math.max(...ring.map((c) => c[1]));
+    if (maxLat < -55) return;
 
     // Check if this ring crosses the antimeridian
     let crosses = false;

@@ -3,41 +3,22 @@
 import { useState, useMemo } from "react";
 import { Article } from "@/types";
 import { extractGeoData, GeoPoint } from "@/lib/geo";
-import { WORLD_PATHS } from "@/lib/world-paths";
+import { WORLD_PATHS, MAP_WIDTH, MAP_HEIGHT, projectMercator } from "@/lib/world-paths";
 import { Globe, X } from "lucide-react";
 
 interface HeatMapProps {
   articles: Article[];
 }
 
-// Convert lat/lng to SVG Mercator projection coordinates
-function project(
-  lat: number,
-  lng: number,
-  width: number,
-  height: number
-): { x: number; y: number } {
-  const x = ((lng + 180) / 360) * width;
-  // Mercator projection with clamping
-  const latRad = (lat * Math.PI) / 180;
-  const mercN = Math.log(Math.tan(Math.PI / 4 + latRad / 2));
-  const y = height / 2 - (mercN / Math.PI) * (height / 2);
-  return { x, y };
-}
-
 function HeatDot({
   point,
   maxCount,
-  width,
-  height,
 }: {
   point: GeoPoint;
   maxCount: number;
-  width: number;
-  height: number;
 }) {
   const [hover, setHover] = useState(false);
-  const { x, y } = project(point.lat, point.lng, width, height);
+  const [x, y] = projectMercator(point.lng, point.lat);
   const intensity = Math.min(point.count / maxCount, 1);
   const radius = 4 + intensity * 12;
 
@@ -149,8 +130,8 @@ export default function HeatMap({ articles }: HeatMapProps) {
   const geoData = useMemo(() => extractGeoData(articles), [articles]);
   const maxCount = Math.max(...geoData.map((p) => p.count), 1);
 
-  const WIDTH = 800;
-  const HEIGHT = 420;
+  const WIDTH = MAP_WIDTH;
+  const HEIGHT = MAP_HEIGHT;
 
   return (
     <>
@@ -244,9 +225,9 @@ export default function HeatMap({ articles }: HeatMapProps) {
                 {/* Equator */}
                 <line
                   x1={0}
-                  y1={HEIGHT / 2}
+                  y1={projectMercator(0, 0)[1]}
                   x2={WIDTH}
-                  y2={HEIGHT / 2}
+                  y2={projectMercator(0, 0)[1]}
                   stroke="#3f3f46"
                   strokeWidth={0.5}
                   strokeDasharray="4 4"
@@ -258,8 +239,6 @@ export default function HeatMap({ articles }: HeatMapProps) {
                     key={point.code}
                     point={point}
                     maxCount={maxCount}
-                    width={WIDTH}
-                    height={HEIGHT}
                   />
                 ))}
               </svg>
