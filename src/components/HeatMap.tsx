@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { Article } from "@/types";
 import { extractGeoData, GeoPoint } from "@/lib/geo";
+import { WORLD_PATHS } from "@/lib/world-paths";
 import { Globe, X } from "lucide-react";
 
 interface HeatMapProps {
@@ -198,7 +199,18 @@ export default function HeatMap({ articles }: HeatMapProps) {
                 viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
                 className="w-full bg-zinc-950 rounded border border-zinc-800"
               >
-                {/* Grid lines */}
+                {/* Continent outlines */}
+                {WORLD_PATHS.map((d, i) => (
+                  <path
+                    key={i}
+                    d={d}
+                    fill="#1a1a2e"
+                    stroke="#2a2a3e"
+                    strokeWidth={0.8}
+                  />
+                ))}
+
+                {/* Grid lines (subtle, over continents) */}
                 {Array.from({ length: 7 }, (_, i) => {
                   const y = (i * HEIGHT) / 6;
                   return (
@@ -209,7 +221,8 @@ export default function HeatMap({ articles }: HeatMapProps) {
                       x2={WIDTH}
                       y2={y}
                       stroke="#27272a"
-                      strokeWidth={0.5}
+                      strokeWidth={0.3}
+                      strokeOpacity={0.5}
                     />
                   );
                 })}
@@ -223,7 +236,8 @@ export default function HeatMap({ articles }: HeatMapProps) {
                       x2={x}
                       y2={HEIGHT}
                       stroke="#27272a"
-                      strokeWidth={0.5}
+                      strokeWidth={0.3}
+                      strokeOpacity={0.5}
                     />
                   );
                 })}
