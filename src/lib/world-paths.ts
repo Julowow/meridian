@@ -15,35 +15,12 @@ function projectMercator(lng: number, lat: number): [number, number] {
 
 /**
  * Check if a polygon ring crosses the antimeridian (180° longitude).
- * Detected when consecutive points have a longitude jump > 180°.
  */
 function crossesAntimeridian(ring: number[][]): boolean {
   for (let i = 1; i < ring.length; i++) {
     if (Math.abs(ring[i][0] - ring[i - 1][0]) > 180) return true;
   }
   return false;
-}
-
-/**
- * Split a ring that crosses the antimeridian into two halves:
- * one for the western side and one for the eastern side.
- */
-function splitAtAntimeridian(ring: number[][]): number[][][] {
-  const west: number[][] = [];
-  const east: number[][] = [];
-
-  for (const coord of ring) {
-    if (coord[0] < 0) {
-      west.push(coord);
-    } else {
-      east.push(coord);
-    }
-  }
-
-  const result: number[][][] = [];
-  if (west.length > 2) result.push(west);
-  if (east.length > 2) result.push(east);
-  return result;
 }
 
 function coordsToPath(ring: number[][]): string {
@@ -55,42 +32,37 @@ function coordsToPath(ring: number[][]): string {
     .join(" ") + " Z";
 }
 
-function generateWorldPaths(): string {
+function generateWorldPaths(): string[] {
   const topo = landTopo as unknown as Topology<{ land: GeometryCollection }>;
   const land = topojson.feature(topo, topo.objects.land);
 
-  const allParts: string[] = [];
+  const paths: string[] = [];
 
-  function processRing(ring: number[][], isHole: boolean) {
-    if (crossesAntimeridian(ring)) {
-      // Split into two halves to avoid the horizontal line artifact
-      const halves = splitAtAntimeridian(ring);
-      for (const half of halves) {
-        if (!isHole) {
-          allParts.push(coordsToPath(half));
-        }
-      }
-    } else {
-      allParts.push(coordsToPath(ring));
-    }
+  function processRing(ring: number[][]) {
+    // Skip polygons that cross the antimeridian — they create artifacts
+    if (crossesAntimeridian(ring)) return;
+    // Skip tiny rings (< 4 points)
+    if (ring.length < 4) return;
+    paths.push(coordsToPath(ring));
   }
 
   if (land.type === "FeatureCollection") {
     for (const feature of land.features) {
       const geom = feature.geometry;
       if (geom.type === "Polygon") {
-        geom.coordinates.forEach((ring, i) => processRing(ring, i > 0));
+        // Only process outer ring (index 0), skip holes
+        if (geom.coordinates[0]) processRing(geom.coordinates[0]);
       } else if (geom.type === "MultiPolygon") {
         for (const polygon of geom.coordinates) {
-          polygon.forEach((ring, i) => processRing(ring, i > 0));
+          // Only process outer ring of each polygon
+          if (polygon[0]) processRing(polygon[0]);
         }
       }
     }
   }
 
-  // Combine all paths into one single path string (avoids seams between polygons)
-  return allParts.join(" ");
+  return paths;
 }
 
-// Single combined SVG path for the entire world map
-export const WORLD_PATH = generateWorldPaths();
+// Array of individual SVG path strings — each rendered as its own element
+export const WORLD_PATHS = generateWorldPaths();

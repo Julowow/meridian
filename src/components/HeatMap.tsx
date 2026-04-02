@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { Article } from "@/types";
 import { extractGeoData, GeoPoint } from "@/lib/geo";
-import { WORLD_PATH } from "@/lib/world-paths";
+import { WORLD_PATHS } from "@/lib/world-paths";
 import { Globe, X } from "lucide-react";
 
 interface HeatMapProps {
@@ -199,13 +199,15 @@ export default function HeatMap({ articles }: HeatMapProps) {
                 viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
                 className="w-full bg-zinc-950 rounded border border-zinc-800"
               >
-                {/* World map (single combined path, no stroke = no seams) */}
-                <path
-                  d={WORLD_PATH}
-                  fill="#1c1c30"
-                  fillRule="evenodd"
-                  stroke="none"
-                />
+                {/* World map — each landmass as its own path */}
+                {WORLD_PATHS.map((d, i) => (
+                  <path
+                    key={i}
+                    d={d}
+                    fill="#1c1c30"
+                    stroke="none"
+                  />
+                ))}
 
                 {/* Grid lines (subtle, over continents) */}
                 {Array.from({ length: 7 }, (_, i) => {
