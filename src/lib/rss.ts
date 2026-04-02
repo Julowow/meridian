@@ -3,7 +3,6 @@ import { Article, Category, SourceConfig, SourceStatus } from "@/types";
 import { RSS_SOURCES } from "@/config/sources";
 import { deduplicateArticles } from "@/lib/dedup";
 import { getCachedFeed, setCachedFeed } from "@/lib/cache";
-import { enrichArticlesWithAI } from "@/lib/ai-summary";
 
 const parser = new Parser({
   timeout: 10_000,
@@ -158,9 +157,6 @@ export async function fetchAllFeeds(): Promise<{
 
   // Mark hot articles based on cluster size
   allArticles = markHotArticles(allArticles);
-
-  // Enrich with AI summaries (placeholder — returns articles unchanged for now)
-  allArticles = await enrichArticlesWithAI(allArticles);
 
   const feedData = {
     articles: allArticles,
