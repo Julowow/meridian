@@ -33,12 +33,12 @@ function Clock() {
   });
 
   return (
-    <div className="flex items-center gap-3 font-mono text-sm">
-      <span className="text-zinc-400">UTC</span>
+    <div className="flex items-center gap-2 sm:gap-3 font-mono text-xs sm:text-sm">
+      <span className="text-zinc-400 hidden sm:inline">UTC</span>
       <span className="text-emerald-400 font-bold">{utc}</span>
-      <span className="text-zinc-600">|</span>
-      <span className="text-zinc-400">LOCAL</span>
-      <span className="text-emerald-400 font-bold">{local}</span>
+      <span className="text-zinc-600 hidden sm:inline">|</span>
+      <span className="text-zinc-400 hidden sm:inline">LOCAL</span>
+      <span className="text-emerald-400 font-bold hidden sm:inline">{local}</span>
     </div>
   );
 }
@@ -54,14 +54,14 @@ export default function Header({
   const totalCount = sources.length;
 
   return (
-    <header className="bg-zinc-950 border-b border-zinc-800 px-4 py-2 flex items-center justify-between shrink-0">
+    <header className="bg-zinc-950 border-b border-zinc-800 px-2 sm:px-4 py-2 flex items-center justify-between shrink-0 gap-2">
       {/* Left: Logo + Name */}
-      <div className="flex items-center gap-3">
-        <Satellite className="w-6 h-6 text-emerald-400" />
-        <h1 className="text-lg font-bold tracking-wider text-white">
+      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+        <Satellite className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-400" />
+        <h1 className="text-sm sm:text-lg font-bold tracking-wider text-white">
           MERIDIAN
         </h1>
-        <span className="text-[10px] text-zinc-500 font-mono mt-1">
+        <span className="text-[10px] text-zinc-500 font-mono mt-1 hidden lg:inline">
           LIVE INTEL
         </span>
       </div>
@@ -70,20 +70,20 @@ export default function Header({
       <Clock />
 
       {/* Right: Status + Actions */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 sm:gap-4 shrink-0">
         {/* Source status */}
-        <div className="flex items-center gap-2 text-xs font-mono">
-          <Activity className="w-3.5 h-3.5 text-zinc-400" />
-          <div className="flex gap-1">
+        <div className="flex items-center gap-1.5 sm:gap-2 text-xs font-mono">
+          <Activity className="w-3.5 h-3.5 text-zinc-400 hidden sm:block" />
+          <div className="flex gap-0.5 sm:gap-1">
             {sources.map((s) => (
               <div
                 key={s.id}
                 title={`${s.name}: ${s.online ? "online" : "offline"} (${s.articleCount} articles)`}
-                className={`w-2 h-2 rounded-full ${s.online ? "bg-emerald-400" : "bg-red-500"}`}
+                className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${s.online ? "bg-emerald-400" : "bg-red-500"}`}
               />
             ))}
           </div>
-          <span className="text-zinc-500">
+          <span className="text-zinc-500 hidden sm:inline">
             {onlineCount}/{totalCount}
           </span>
         </div>

@@ -78,16 +78,16 @@ export default function Dashboard() {
       />
 
       {/* Tools bar */}
-      <div className="bg-zinc-950 border-b border-zinc-800 px-4 py-1.5 flex items-center gap-3 shrink-0">
+      <div className="bg-zinc-950 border-b border-zinc-800 px-2 sm:px-4 py-1.5 flex items-center gap-2 sm:gap-3 shrink-0">
         <SearchBar />
         <AlertsPanel />
         <HeatMap articles={articles} />
       </div>
 
       {/* Main content area */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
         {/* Feed column */}
-        <main className="flex-1 overflow-y-auto" style={{ flex: "0 0 65%" }}>
+        <main className="flex-1 overflow-y-auto lg:flex-none lg:w-[65%]">
           {loading && articles.length === 0 ? (
             <div className="flex items-center justify-center h-full">
               <div className="flex flex-col items-center gap-3 text-zinc-500">
@@ -131,8 +131,8 @@ export default function Dashboard() {
           )}
         </main>
 
-        {/* Sidebar */}
-        <div style={{ flex: "0 0 35%" }}>
+        {/* Sidebar — below feed on mobile, right column on desktop */}
+        <div className="lg:w-[35%] shrink-0 border-t lg:border-t-0 border-zinc-800">
           <Sidebar articles={filteredArticles} sources={sources} />
         </div>
       </div>

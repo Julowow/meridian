@@ -66,11 +66,11 @@ export default function SearchBar() {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="flex items-center gap-2 px-2.5 py-1 rounded bg-zinc-800/50 border border-zinc-700/50 hover:border-zinc-600 transition-colors text-xs text-zinc-500"
+        className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-2.5 py-1 rounded bg-zinc-800/50 border border-zinc-700/50 hover:border-zinc-600 transition-colors text-xs text-zinc-500"
       >
         <Search className="w-3.5 h-3.5" />
-        <span className="font-mono">Rechercher...</span>
-        <kbd className="text-[9px] bg-zinc-700 px-1 py-0.5 rounded ml-1">
+        <span className="font-mono hidden sm:inline">Rechercher...</span>
+        <kbd className="text-[9px] bg-zinc-700 px-1 py-0.5 rounded hidden md:inline">
           Ctrl+K
         </kbd>
       </button>
