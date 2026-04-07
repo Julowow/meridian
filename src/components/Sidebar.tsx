@@ -2,21 +2,14 @@
 
 import { Article, SourceStatus } from "@/types";
 import { formatDistanceToNowStrict } from "date-fns";
-import { fr } from "date-fns/locale";
+import { fr, enUS } from "date-fns/locale";
 import { ExternalLink } from "lucide-react";
+import { useI18n } from "@/i18n/context";
 
 interface SidebarProps {
   articles: Article[];
   sources: SourceStatus[];
 }
-
-const categoryLabels: Record<string, string> = {
-  world: "MONDE",
-  markets: "MARCHÉS",
-  economy: "ÉCONOMIE",
-  "war-geo": "GUERRE & GÉO",
-  politics: "POLITIQUE",
-};
 
 const categoryBarColors: Record<string, string> = {
   world: "bg-blue-500",
@@ -27,7 +20,9 @@ const categoryBarColors: Record<string, string> = {
 };
 
 export default function Sidebar({ articles, sources }: SidebarProps) {
+  const { locale, t } = useI18n();
   const latest = articles.slice(0, 10);
+  const dateFnsLocale = locale === "fr" ? fr : enUS;
 
   // Category breakdown
   const breakdown = new Map<string, number>();
@@ -36,7 +31,6 @@ export default function Sidebar({ articles, sources }: SidebarProps) {
   }
   const maxCount = Math.max(...breakdown.values(), 1);
 
-  // Phase 2 stats
   const dedupedCount = articles.filter((a) => (a.duplicateCount ?? 1) > 1).length;
   const aiCount = articles.filter((a) => a.aiSummary).length;
 
@@ -46,7 +40,7 @@ export default function Sidebar({ articles, sources }: SidebarProps) {
       <div className="p-3 border-b border-zinc-800">
         <h2 className="text-[11px] font-bold text-zinc-400 tracking-widest mb-3 flex items-center gap-2">
           <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
-          LATEST
+          {t.latest}
         </h2>
         <div className="space-y-0.5">
           {latest.map((article) => (
@@ -59,7 +53,7 @@ export default function Sidebar({ articles, sources }: SidebarProps) {
             >
               <span className="text-zinc-700 text-[10px] font-mono mt-0.5 shrink-0 w-10">
                 {formatDistanceToNowStrict(new Date(article.pubDate), {
-                  locale: fr,
+                  locale: dateFnsLocale,
                   addSuffix: false,
                 })}
               </span>
@@ -83,7 +77,7 @@ export default function Sidebar({ articles, sources }: SidebarProps) {
       {/* BREAKDOWN section */}
       <div className="p-3 border-b border-zinc-800">
         <h2 className="text-[11px] font-bold text-zinc-400 tracking-widest mb-3">
-          BREAKDOWN
+          {t.breakdown}
         </h2>
         <div className="space-y-2">
           {[...breakdown.entries()]
@@ -92,7 +86,7 @@ export default function Sidebar({ articles, sources }: SidebarProps) {
               <div key={cat}>
                 <div className="flex items-center justify-between mb-0.5">
                   <span className="text-[10px] text-zinc-500 font-mono">
-                    {categoryLabels[cat] ?? cat.toUpperCase()}
+                    {t.categoryLabelsFull[cat] ?? cat.toUpperCase()}
                   </span>
                   <span className="text-[10px] text-zinc-600 font-mono">
                     {count}
@@ -112,7 +106,7 @@ export default function Sidebar({ articles, sources }: SidebarProps) {
       {/* SOURCES section */}
       <div className="p-3">
         <h2 className="text-[11px] font-bold text-zinc-400 tracking-widest mb-3">
-          SOURCES
+          {t.sourcesTitle}
         </h2>
         <div className="space-y-1.5">
           {sources.map((source) => (
@@ -134,22 +128,16 @@ export default function Sidebar({ articles, sources }: SidebarProps) {
         </div>
         <div className="mt-3 pt-2 border-t border-zinc-800/50 space-y-1">
           <div className="flex items-center justify-between text-[10px] text-zinc-600 font-mono">
-            <span>TOTAL ARTICLES</span>
-            <span className="text-zinc-400 font-bold">
-              {articles.length}
-            </span>
+            <span>{t.totalArticles}</span>
+            <span className="text-zinc-400 font-bold">{articles.length}</span>
           </div>
           <div className="flex items-center justify-between text-[10px] text-zinc-600 font-mono">
-            <span>MULTI-SOURCE</span>
-            <span className="text-amber-400 font-bold">
-              {dedupedCount}
-            </span>
+            <span>{t.multiSource}</span>
+            <span className="text-amber-400 font-bold">{dedupedCount}</span>
           </div>
           <div className="flex items-center justify-between text-[10px] text-zinc-600 font-mono">
-            <span>RÉSUMÉS IA</span>
-            <span className="text-violet-400 font-bold">
-              {aiCount}/{articles.length}
-            </span>
+            <span>{t.aiSummaries}</span>
+            <span className="text-violet-400 font-bold">{aiCount}/{articles.length}</span>
           </div>
         </div>
       </div>

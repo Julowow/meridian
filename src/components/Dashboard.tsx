@@ -13,6 +13,7 @@ import SearchBar from "./SearchBar";
 import AlertsPanel from "./AlertsPanel";
 import HeatMap from "./HeatMap";
 import { Loader2 } from "lucide-react";
+import { useI18n } from "@/i18n/context";
 
 const TIME_FILTER_MS: Record<TimeFilter, number> = {
   "1h": 60 * 60 * 1000,
@@ -23,6 +24,7 @@ const TIME_FILTER_MS: Record<TimeFilter, number> = {
 export default function Dashboard() {
   const { articles, sources, loading, error, refresh, unreadCount, clearUnread } =
     useFeed();
+  const { t } = useI18n();
 
   const [activeCategory, setActiveCategory] = useState<Category>("all");
   const [activeSources, setActiveSources] = useState<Set<SourceId>>(
@@ -93,35 +95,35 @@ export default function Dashboard() {
               <div className="flex flex-col items-center gap-3 text-zinc-500">
                 <Loader2 className="w-8 h-8 animate-spin text-emerald-400" />
                 <span className="text-sm font-mono">
-                  CHARGEMENT DES FLUX...
+                  {t.loading}
                 </span>
               </div>
             </div>
           ) : error && articles.length === 0 ? (
             <div className="flex items-center justify-center h-full">
               <div className="flex flex-col items-center gap-3 text-red-400">
-                <span className="text-sm font-mono">ERREUR: {error}</span>
+                <span className="text-sm font-mono">{t.error}: {error}</span>
                 <button
                   onClick={refresh}
                   className="text-xs text-emerald-400 hover:underline"
                 >
-                  Réessayer
+                  {t.retry}
                 </button>
               </div>
             </div>
           ) : filteredArticles.length === 0 ? (
             <div className="flex items-center justify-center h-full">
               <span className="text-sm text-zinc-600 font-mono">
-                AUCUN ARTICLE POUR CES FILTRES
+                {t.noArticles}
               </span>
             </div>
           ) : (
             <div>
               {/* Results count */}
               <div className="px-4 py-2 border-b border-zinc-800/50 text-[10px] font-mono text-zinc-600">
-                {filteredArticles.length} ARTICLES
+                {filteredArticles.length} {t.articles}
                 {loading && (
-                  <span className="ml-2 text-emerald-500">● SYNCING</span>
+                  <span className="ml-2 text-emerald-500">● {t.syncing}</span>
                 )}
               </div>
               {filteredArticles.map((article) => (

@@ -4,8 +4,10 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { Search, X, Loader2 } from "lucide-react";
 import { Article } from "@/types";
 import ArticleCard from "./ArticleCard";
+import { useI18n } from "@/i18n/context";
 
 export default function SearchBar() {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Article[]>([]);
@@ -69,7 +71,7 @@ export default function SearchBar() {
         className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-2.5 py-1 rounded bg-zinc-800/50 border border-zinc-700/50 hover:border-zinc-600 transition-colors text-xs text-zinc-500"
       >
         <Search className="w-3.5 h-3.5" />
-        <span className="font-mono hidden sm:inline">Rechercher...</span>
+        <span className="font-mono hidden sm:inline">{t.search}</span>
         <kbd className="text-[9px] bg-zinc-700 px-1 py-0.5 rounded hidden md:inline">
           Ctrl+K
         </kbd>
@@ -99,7 +101,7 @@ export default function SearchBar() {
             type="text"
             value={query}
             onChange={(e) => handleInput(e.target.value)}
-            placeholder="Rechercher dans les articles des dernières 48h..."
+            placeholder={t.searchPlaceholder}
             className="flex-1 bg-transparent text-sm text-zinc-100 placeholder-zinc-600 outline-none"
           />
           {loading && <Loader2 className="w-4 h-4 text-emerald-400 animate-spin shrink-0" />}
@@ -119,12 +121,12 @@ export default function SearchBar() {
         <div className="max-h-[60vh] overflow-y-auto">
           {query && !loading && results.length === 0 && (
             <div className="px-4 py-8 text-center text-sm text-zinc-600 font-mono">
-              AUCUN RÉSULTAT POUR &quot;{query}&quot;
+              {t.noResults} &quot;{query}&quot;
             </div>
           )}
           {total > 0 && (
             <div className="px-4 py-1.5 text-[10px] font-mono text-zinc-600 border-b border-zinc-800/50">
-              {total} RÉSULTAT{total > 1 ? "S" : ""}
+              {total} {total > 1 ? t.resultsPlural : t.results}
             </div>
           )}
           {results.map((article) => (
@@ -135,9 +137,9 @@ export default function SearchBar() {
         {/* Footer hint */}
         <div className="px-4 py-2 border-t border-zinc-800 text-[10px] text-zinc-600 font-mono flex items-center gap-4">
           <span>
-            <kbd className="bg-zinc-800 px-1 py-0.5 rounded">ESC</kbd> fermer
+            <kbd className="bg-zinc-800 px-1 py-0.5 rounded">ESC</kbd> {t.searchClose}
           </span>
-          <span>Recherche fulltext sur titre + description + source</span>
+          <span>{t.searchFulltext}</span>
         </div>
       </div>
     </div>

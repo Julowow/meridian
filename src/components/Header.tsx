@@ -6,8 +6,10 @@ import {
   Activity,
   Bell,
   Satellite,
+  Languages,
 } from "lucide-react";
 import { SourceStatus } from "@/types";
+import { useI18n } from "@/i18n/context";
 
 interface HeaderProps {
   sources: SourceStatus[];
@@ -19,6 +21,7 @@ interface HeaderProps {
 
 function Clock() {
   const [now, setNow] = useState(new Date());
+  const { t } = useI18n();
 
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 1000);
@@ -34,10 +37,10 @@ function Clock() {
 
   return (
     <div className="flex items-center gap-2 sm:gap-3 font-mono text-xs sm:text-sm">
-      <span className="text-zinc-400 hidden sm:inline">UTC</span>
+      <span className="text-zinc-400 hidden sm:inline">{t.utc}</span>
       <span className="text-emerald-400 font-bold">{utc}</span>
       <span className="text-zinc-600 hidden sm:inline">|</span>
-      <span className="text-zinc-400 hidden sm:inline">LOCAL</span>
+      <span className="text-zinc-400 hidden sm:inline">{t.local}</span>
       <span className="text-emerald-400 font-bold hidden sm:inline">{local}</span>
     </div>
   );
@@ -50,6 +53,7 @@ export default function Header({
   unreadCount,
   onClearUnread,
 }: HeaderProps) {
+  const { locale, t, toggle } = useI18n();
   const onlineCount = sources.filter((s) => s.online).length;
   const totalCount = sources.length;
 
@@ -62,7 +66,7 @@ export default function Header({
           MERIDIAN
         </h1>
         <span className="text-[10px] text-zinc-500 font-mono mt-1 hidden lg:inline">
-          LIVE INTEL
+          {t.liveIntel}
         </span>
       </div>
 
@@ -101,12 +105,24 @@ export default function Header({
           </button>
         )}
 
+        {/* Language toggle */}
+        <button
+          onClick={toggle}
+          className="flex items-center gap-1 px-1.5 py-1 rounded hover:bg-zinc-800 transition-colors text-zinc-400 hover:text-white"
+          title={locale === "en" ? "Passer en français" : "Switch to English"}
+        >
+          <Languages className="w-4 h-4" />
+          <span className="text-[10px] font-bold font-mono">
+            {locale === "en" ? "FR" : "EN"}
+          </span>
+        </button>
+
         {/* Refresh */}
         <button
           onClick={onRefresh}
           disabled={loading}
           className="p-1.5 rounded hover:bg-zinc-800 transition-colors text-zinc-400 hover:text-white disabled:opacity-50"
-          title="Refresh feeds"
+          title={t.refreshFeeds}
         >
           <RefreshCw
             className={`w-4 h-4 ${loading ? "animate-spin" : ""}`}

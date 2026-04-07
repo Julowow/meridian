@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { Article } from "@/types";
 import { formatDistanceToNowStrict } from "date-fns";
-import { fr } from "date-fns/locale";
+import { fr, enUS } from "date-fns/locale";
 import { ExternalLink, ChevronDown, ChevronUp, Copy, Bot, Sparkles } from "lucide-react";
+import { useI18n } from "@/i18n/context";
 
 interface ArticleCardProps {
   article: Article;
@@ -18,21 +19,16 @@ const categoryBadgeColors: Record<string, string> = {
   politics: "bg-purple-500/15 text-purple-400 border-purple-500/20",
 };
 
-const categoryLabels: Record<string, string> = {
-  world: "MONDE",
-  markets: "MARCHÉS",
-  economy: "ÉCONOMIE",
-  "war-geo": "GUERRE",
-  politics: "POLITIQUE",
-};
-
 export default function ArticleCard({ article }: ArticleCardProps) {
   const [expanded, setExpanded] = useState(false);
+  const { locale, t } = useI18n();
 
   const timeAgo = formatDistanceToNowStrict(new Date(article.pubDate), {
-    locale: fr,
+    locale: locale === "fr" ? fr : enUS,
     addSuffix: false,
   });
+
+  const timeLabel = locale === "fr" ? `il y a ${timeAgo}` : `${timeAgo} ago`;
 
   return (
     <div
@@ -56,7 +52,7 @@ export default function ArticleCard({ article }: ArticleCardProps) {
         <span
           className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${categoryBadgeColors[article.category] ?? "bg-zinc-800 text-zinc-400 border-zinc-700"}`}
         >
-          {categoryLabels[article.category] ?? article.category.toUpperCase()}
+          {t.categoryLabels[article.category] ?? article.category.toUpperCase()}
         </span>
         <span className="text-zinc-600 text-[10px] font-mono uppercase">
           {article.sourceName}
@@ -64,15 +60,15 @@ export default function ArticleCard({ article }: ArticleCardProps) {
         {(article.duplicateCount ?? 1) > 1 && (
           <>
             <span className="text-zinc-700 text-[10px]">•</span>
-            <span className="text-zinc-500 text-[10px] font-mono flex items-center gap-1" title={`Couvert par: ${article.relatedSources?.join(", ")}`}>
+            <span className="text-zinc-500 text-[10px] font-mono flex items-center gap-1" title={`${t.coveredBy} ${article.relatedSources?.join(", ")}`}>
               <Copy className="w-2.5 h-2.5" />
-              {article.duplicateCount} sources
+              {article.duplicateCount} {t.sources}
             </span>
           </>
         )}
         <span className="text-zinc-700 text-[10px]">•</span>
         <span className="text-zinc-500 text-[10px] font-mono">
-          il y a {timeAgo}
+          {timeLabel}
         </span>
         <div className="flex-1" />
         <span className="text-zinc-700 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -105,7 +101,7 @@ export default function ArticleCard({ article }: ArticleCardProps) {
               <div className="flex items-center gap-1.5 mb-1.5">
                 <Sparkles className="w-3 h-3 text-violet-400" />
                 <span className="text-[10px] font-bold text-violet-400 tracking-wider">
-                  RÉSUMÉ IA
+                  {t.aiSummary}
                 </span>
                 {article.aiSentiment && (
                   <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ml-1 ${
@@ -135,7 +131,7 @@ export default function ArticleCard({ article }: ArticleCardProps) {
             <div className="bg-zinc-800/30 rounded-md p-2.5 border border-zinc-800/50 flex items-center gap-2">
               <Bot className="w-3.5 h-3.5 text-zinc-600" />
               <span className="text-[10px] text-zinc-600 font-mono">
-                RÉSUMÉ IA NON DISPONIBLE
+                {t.aiUnavailable}
               </span>
             </div>
           )}
@@ -147,7 +143,7 @@ export default function ArticleCard({ article }: ArticleCardProps) {
           {/* Related sources */}
           {article.relatedSources && article.relatedSources.length > 1 && (
             <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-[10px] text-zinc-600">Aussi couvert par:</span>
+              <span className="text-[10px] text-zinc-600">{t.coveredBy}</span>
               {article.relatedSources
                 .filter((s) => s !== article.sourceName)
                 .map((source) => (
@@ -166,7 +162,7 @@ export default function ArticleCard({ article }: ArticleCardProps) {
             className="inline-flex items-center gap-1.5 text-xs text-emerald-400 hover:text-emerald-300 transition-colors"
           >
             <ExternalLink className="w-3 h-3" />
-            Lire l&apos;article source
+            {t.readArticle}
           </a>
         </div>
       )}

@@ -5,6 +5,7 @@ import { Article } from "@/types";
 import { extractGeoData, GeoPoint } from "@/lib/geo";
 import { WORLD_PATHS, MAP_WIDTH, MAP_HEIGHT, projectMercator } from "@/lib/world-paths";
 import { Globe, X } from "lucide-react";
+import { useI18n } from "@/i18n/context";
 
 interface HeatMapProps {
   articles: Article[];
@@ -126,6 +127,7 @@ function HeatDot({
 }
 
 export default function HeatMap({ articles }: HeatMapProps) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const geoData = useMemo(() => extractGeoData(articles), [articles]);
   const maxCount = Math.max(...geoData.map((p) => p.count), 1);
@@ -140,7 +142,7 @@ export default function HeatMap({ articles }: HeatMapProps) {
         className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-zinc-800/50 border border-zinc-700/50 hover:border-zinc-600 transition-colors text-xs text-zinc-500"
       >
         <Globe className="w-3.5 h-3.5" />
-        <span className="font-mono">Heatmap</span>
+        <span className="font-mono">{t.heatmap}</span>
         {geoData.length > 0 && (
           <span className="bg-blue-500/20 text-blue-400 text-[9px] font-bold px-1 py-0.5 rounded">
             {geoData.length}
@@ -160,10 +162,10 @@ export default function HeatMap({ articles }: HeatMapProps) {
               <div className="flex items-center gap-2">
                 <Globe className="w-4 h-4 text-blue-400" />
                 <h2 className="text-sm font-bold text-zinc-100">
-                  HEATMAP GÉOGRAPHIQUE
+                  {t.heatmapTitle}
                 </h2>
                 <span className="text-[10px] text-zinc-600 font-mono">
-                  {geoData.length} ZONES ACTIVES
+                  {geoData.length} {t.heatmapZones}
                 </span>
               </div>
               <button

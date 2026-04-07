@@ -3,8 +3,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { Bell, Plus, Trash2, ToggleLeft, ToggleRight, X } from "lucide-react";
 import { AlertRule } from "@/lib/alerts";
+import { useI18n } from "@/i18n/context";
 
 export default function AlertsPanel() {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [rules, setRules] = useState<AlertRule[]>([]);
   const [newKeywords, setNewKeywords] = useState("");
@@ -66,7 +68,7 @@ export default function AlertsPanel() {
         title="Alertes Telegram"
       >
         <Bell className="w-3.5 h-3.5" />
-        <span className="font-mono">Alertes</span>
+        <span className="font-mono">{t.alerts}</span>
         {rules.filter((r) => r.enabled).length > 0 && (
           <span className="bg-amber-500/20 text-amber-400 text-[9px] font-bold px-1 py-0.5 rounded">
             {rules.filter((r) => r.enabled).length}
@@ -86,7 +88,7 @@ export default function AlertsPanel() {
               <div className="flex items-center gap-2">
                 <Bell className="w-4 h-4 text-amber-400" />
                 <h2 className="text-sm font-bold text-zinc-100">
-                  ALERTES TELEGRAM
+                  {t.alertsTitle}
                 </h2>
               </div>
               <button
@@ -100,7 +102,7 @@ export default function AlertsPanel() {
             {/* Add rule */}
             <div className="px-4 py-3 border-b border-zinc-800">
               <p className="text-[10px] text-zinc-600 font-mono mb-2">
-                AJOUTER UNE ALERTE (mots-clés séparés par des virgules)
+                {t.alertsAdd}
               </p>
               <div className="flex gap-2">
                 <input
@@ -108,7 +110,7 @@ export default function AlertsPanel() {
                   value={newKeywords}
                   onChange={(e) => setNewKeywords(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && addRule()}
-                  placeholder="Fed, Ukraine, Bitcoin, élection..."
+                  placeholder={t.alertsPlaceholder}
                   className="flex-1 bg-zinc-800 text-sm text-zinc-100 placeholder-zinc-600 px-3 py-1.5 rounded outline-none border border-zinc-700 focus:border-emerald-500/50"
                 />
                 <button
@@ -117,7 +119,7 @@ export default function AlertsPanel() {
                   className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs font-bold px-3 py-1.5 rounded transition-colors"
                 >
                   <Plus className="w-3.5 h-3.5" />
-                  AJOUTER
+                  {t.alertsAddBtn}
                 </button>
               </div>
             </div>
@@ -126,7 +128,7 @@ export default function AlertsPanel() {
             <div className="max-h-[40vh] overflow-y-auto">
               {rules.length === 0 ? (
                 <div className="px-4 py-8 text-center text-sm text-zinc-600 font-mono">
-                  AUCUNE ALERTE CONFIGURÉE
+                  {t.alertsNone}
                 </div>
               ) : (
                 <div className="divide-y divide-zinc-800/50">
@@ -176,8 +178,8 @@ export default function AlertsPanel() {
             {/* Footer */}
             <div className="px-4 py-2 border-t border-zinc-800 text-[10px] text-zinc-600 font-mono">
               {process.env.NEXT_PUBLIC_TELEGRAM_CONFIGURED === "true"
-                ? "Telegram connecté — notifications en temps réel"
-                : "Telegram non configuré — définir TELEGRAM_BOT_TOKEN et TELEGRAM_CHAT_ID"}
+                ? t.alertsTgConnected
+                : t.alertsTgNotConfigured}
             </div>
           </div>
         </div>
