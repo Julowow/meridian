@@ -80,7 +80,7 @@ async function fetchSource(
 
       return {
         id: generateId(sourceConfig.id, item.title ?? ""),
-        title: item.title ?? "Untitled",
+        title: (item.title ?? "Untitled").replace(/\s*-\s*(Reuters|BBC News|Al Jazeera|The Guardian)$/i, ""),
         description: item.contentSnippet ?? item.content ?? "",
         content: item.content ?? "",
         link: item.link ?? "",

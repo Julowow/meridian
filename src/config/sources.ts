@@ -39,7 +39,7 @@ export const RSS_SOURCES: SourceConfig[] = [
   {
     id: "reuters",
     name: "Reuters",
-    url: "https://www.reutersagency.com/feed/?best-topics=political-general&post_type=best",
+    url: "https://news.google.com/rss/search?q=site:reuters.com+when:1d&hl=en-US&gl=US&ceid=US:en",
     category: "world",
     color: "#FF8000",
   },
